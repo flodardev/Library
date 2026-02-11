@@ -1,154 +1,159 @@
-const books = [];
-//addBookToLibrary("How to train your dragon", "Cressida Cowell", 214, true);
-//displayBookOnPage(books);
+class Library {
+  static #numberOfBooks = 0;
+  static #books = [];
 
-function Book(title, author, pages, read, id) {
-  if (!new.target) {
-    throw Error("Please use the new keyword with the constructor");
+  static insertBook(bookInstance) {
+    this.#books.push(bookInstance);
+    this.#numberOfBooks++;
   }
 
-  this.title = title; // String
-  this.author = author; // String
-  this.numberOfPages = pages; // Number
-  this.readOrNot = read; // Boolean
-  this.id = id; // Number
-
-  let ifRead;
-  if (this.readOrNot) {
-    ifRead = "already read";
-  } else {
-    ifRead = "not yet read";
+  static getBookCount() {
+    return this.#numberOfBooks;
   }
 
-  this.info = function () {
-    return `${title} by ${author}, ${this.numberOfPages} pages, ${ifRead}.`;
-  };
-}
-
-// Add prototype function to update book read status
-Book.prototype.UpdateStatus = function () {
-  if (this.readOrNot) {
-    this.readOrNot = false;
-  } else {
-    this.readOrNot = true;
+  static getAllBooks() {
+    return [...this.#books];
   }
-};
-
-function addBookToLibrary(title, author, pages, read) {
-  const newID = crypto.randomUUID();
-  const newBook = new Book(title, author, pages, read, newID);
-  books.push(newBook);
-
-  resetBooksContainer();
-  // Call display function
-  displayBookOnPage(books);
 }
 
-function resetBooksContainer() {
-  const cardsContainer = document.querySelector(".book-container");
+class Book {
+  constructor(title, author, pages, read) {
+    this.title = title; // String
+    this.author = author; // String
+    this.numberOfPages = pages; // Number
+    this.readOrNot = read; // Boolean
 
-  // Refreshes the card.container
-  cardsContainer.innerHTML = "";
+    // generate a unique ID for each book
+    this.id = crypto.randomUUID(); // Number
+  }
+
+  updateStatus() {
+    this.readOrNot = this.readOrNot ? false : true;
+  }
+
+  get info() {
+    const ifRead = this.readOrNot ? "already read" : "not yet read";
+    return `${this.title} by ${this.author}, ${this.numberOfPages} pages, ${ifRead}.`;
+  }
 }
 
-function displayBookOnPage(array) {
-  array.forEach((item) => {
-    // Display on the page in a card
-    const bookCard = document.createElement("div");
-    bookCard.classList.add("book-card");
+class BookCard {
+  // creates card div element
+}
 
-    const bookImg = document.createElement("img");
-    bookImg.classList.add("card-img");
-    bookImg.src = "./images/book-icon.png";
-    bookImg.alt = "book icon";
+// display controller module (IIFEs)
+const displayController = (() => {
+  // do something
 
-    const bookTitle = document.createElement("p");
-    bookTitle.classList.add("title");
-    bookTitle.textContent = item.title;
+  const displayBooks = () => {
+    const books = Library.getAllBooks();
+    console.log(books);
+    books.forEach((book) => {
+      // Display on the page in a card
+      const bookCard = document.createElement("div");
+      bookCard.classList.add("book-card");
 
-    const bookAuthor = document.createElement("p");
-    bookAuthor.classList.add("author");
-    bookAuthor.textContent = `${item.author}, `;
+      const bookImg = document.createElement("img");
+      bookImg.classList.add("card-img");
+      bookImg.src = "./images/book-icon.png";
+      bookImg.alt = "book icon";
 
-    const bookPages = document.createElement("span");
-    bookPages.classList.add("pages");
-    bookPages.textContent = `${item.numberOfPages}pg`;
-    bookAuthor.append(bookPages);
+      const bookTitle = document.createElement("p");
+      bookTitle.classList.add("title");
+      bookTitle.textContent = book.title;
 
-    const bookStatus = document.createElement("p");
-    bookStatus.classList.add("status");
-    if (item.readOrNot) {
-      bookStatus.textContent = "Read";
-    } else {
-      bookStatus.textContent = "Not Read";
-    }
+      const bookAuthor = document.createElement("p");
+      bookAuthor.classList.add("author");
+      bookAuthor.textContent = `${book.author}, `;
 
-    // Book ID
-    const bookID = document.createElement("p");
-    bookID.classList.add("book-id");
-    bookID.hidden = true;
-    bookID.textContent = item.id;
+      const bookPages = document.createElement("span");
+      bookPages.classList.add("pages");
+      bookPages.textContent = `${book.numberOfPages}pg`;
+      bookAuthor.append(bookPages);
 
-    const cardButtons = document.createElement("div");
-    cardButtons.classList.add("card-btns");
-    ["Update", "Remove"].forEach((item) => {
-      const button = document.createElement("button");
-      button.textContent = item;
+      const bookStatus = document.createElement("p");
+      bookStatus.classList.add("status");
+      if (book.readOrNot) {
+        bookStatus.textContent = "Read";
+      } else {
+        bookStatus.textContent = "Not Read";
+      }
 
-      // Add remove functionality
-      if (item === "Remove") {
-        button.addEventListener("click", () => {
-          const closestCard = button.closest(".book-card");
-          const cardID = closestCard.querySelector(".book-id");
+      // Book ID
+      const bookID = document.createElement("p");
+      bookID.classList.add("book-id");
+      bookID.hidden = true;
+      bookID.textContent = book.id;
 
-          // Remove from the library array
-          const index = books.findIndex(
-            (item) => item.id === cardID.textContent,
-          );
+      const cardButtons = document.createElement("div");
+      cardButtons.classList.add("card-btns");
+      ["Update", "Remove"].forEach((item) => {
+        const button = document.createElement("button");
+        button.textContent = item;
 
-          if (index !== -1) {
-            books.splice(index, 1);
-          }
+        // Add remove functionality
+        if (item === "Remove") {
+          button.addEventListener("click", () => {
+            const closestCard = button.closest(".book-card");
+            const cardID = closestCard.querySelector(".book-id");
 
-          // Update DOM
-          closestCard.remove();
-        });
-      } else if (item === "Update")
-        button.addEventListener("click", () => {
-          const closestCard = button.closest(".book-card");
-          const cardID = closestCard.querySelector(".book-id");
+            // Remove from the library array
+            const index = books.findIndex(
+              (item) => item.id === cardID.textContent,
+            );
 
-          // Update book's read status
-          const index = books.findIndex(
-            (item) => item.id === cardID.textContent,
-          );
+            if (index !== -1) {
+              books.splice(index, 1);
+            }
 
-          books[index].UpdateStatus();
+            // Update DOM
+            closestCard.remove();
+          });
+        } else if (item === "Update")
+          button.addEventListener("click", () => {
+            const closestCard = button.closest(".book-card");
+            const cardID = closestCard.querySelector(".book-id");
 
-          const bookStatus = closestCard.querySelector(".status");
-          if (books[index].readOrNot) {
-            bookStatus.textContent = "Read";
-          } else {
-            bookStatus.textContent = "Not Read";
-          }
-        });
+            // Update book's read status
+            const index = books.findIndex(
+              (item) => item.id === cardID.textContent,
+            );
 
-      cardButtons.append(button);
+            books[index].UpdateStatus();
+
+            const bookStatus = closestCard.querySelector(".status");
+            if (books[index].readOrNot) {
+              bookStatus.textContent = "Read";
+            } else {
+              bookStatus.textContent = "Not Read";
+            }
+          });
+
+        cardButtons.append(button);
+      });
+
+      bookCard.append(
+        bookImg,
+        bookTitle,
+        bookAuthor,
+        bookStatus,
+        cardButtons,
+        bookID,
+      );
+
+      const cardsContainer = document.querySelector(".book-container");
+      cardsContainer.append(bookCard);
     });
+  };
 
-    bookCard.append(
-      bookImg,
-      bookTitle,
-      bookAuthor,
-      bookStatus,
-      cardButtons,
-      bookID,
-    );
-
+  const resetBooksContainer = () => {
     const cardsContainer = document.querySelector(".book-container");
-    cardsContainer.append(bookCard);
-  });
-}
+    // Refreshes the card.container
+    cardsContainer.innerHTML = "";
+  };
+
+  return { displayBooks, resetBooksContainer };
+})();
 
 // Dialog Section
 const bookDetailsModal = document.querySelector("#new-book-details");
@@ -178,13 +183,18 @@ newBookForm.addEventListener("submit", (event) => {
     readBool = false;
   }
 
-  // call the addBookToLibrary function
-  addBookToLibrary(
+  // create new book class
+  const newBook = new Book(
     formObject.title,
     formObject.author,
     formObject.numberOfPages,
     readBool,
   );
+
+  // Insert to Library class
+  Library.insertBook(newBook);
+  displayController.resetBooksContainer();
+  displayController.displayBooks();
 
   newBookForm.reset(); // Reset the form
   bookDetailsModal.close(); // Close the modal
